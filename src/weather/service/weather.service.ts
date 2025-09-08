@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { RedisService } from 'src/redis/redis.service';
+import { IWeatherResponse } from '../interfaces/weather-response.interface';
+import { UrlEnum } from '../enum/weather-api-url.enum';
 
 @Injectable()
 export class WeatherService {
@@ -11,6 +13,7 @@ export class WeatherService {
   private contentType: string;
   private defaultCity: string;
   private cacheTTL: number;
+  private lang: string;
 
   constructor(
     private readonly redisService: RedisService,
@@ -34,29 +37,28 @@ export class WeatherService {
       'CACHE_TTL_SECONDS',
       600,
     ) as number;
+    this.lang = this.configService.get<string>('VS_LANG', 'us') as string;
   }
 
-  async getWeather(city?: string): Promise<any> {
+  async getWeather(city?: string): Promise<IWeatherResponse> {
     try {
-      if (!city) return { error: 'City is required' };
-
       const location = encodeURIComponent(city || this.defaultCity);
       const cacheKey = `weather:${location.toLowerCase()}`;
 
-      const cached = await this.cacheCheck(cacheKey);
+      await this.cacheCheck(cacheKey);
 
-      const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?unitGroup=${this.unitGroup}&key=${this.apiKey}&contentType=${this.contentType}`;
-      const response = await axios.get(url);
+      const url = this.buildWeatherUrl(location);
 
-      await this.saveInCache(cacheKey, response);
-
+      const response = await axios.get<IWeatherResponse>(url);
+      await this.saveInCache(cacheKey, response.data);
       return response.data;
     } catch (error) {
-      throw error;
+      throw new Error(
+        `Weather API request failed: ${(error as Error).message}`,
+      );
     }
   }
 
-  // TODO: tipar
   private async cacheCheck(cacheKey: string): Promise<any> {
     try {
       const cached = await this.redisService.get(cacheKey);
@@ -67,8 +69,25 @@ export class WeatherService {
     }
   }
 
-  // TODO: tipar
-  private async saveInCache(cacheKey, response): Promise<void> {
-    await this.redisService.set(cacheKey, response.data, this.cacheTTL);
+  private async saveInCache(
+    cacheKey: string,
+    response: IWeatherResponse,
+  ): Promise<void> {
+    try {
+      await this.redisService.set(cacheKey, response, this.cacheTTL);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private buildWeatherUrl(location: string): string {
+    const params = new URLSearchParams({
+      unitGroup: this.unitGroup,
+      key: this.apiKey,
+      contentType: this.contentType,
+      lang: this.lang,
+    });
+
+    return `${UrlEnum.API_BASE_URL}${location}?${params.toString()}`;
   }
 }

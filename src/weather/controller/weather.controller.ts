@@ -1,6 +1,7 @@
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { WeatherService } from '../service/weather.service';
+import { getWeahterDto } from '../dto/getWeather.dto';
 
 @Controller('weather')
 export class WeatherController {
@@ -9,7 +10,7 @@ export class WeatherController {
   @Get()
   @HttpCode(200)
   @ApiOperation({ summary: 'Check the wheather' })
-  async getWeather(@Query('city') city: string) {
-    return this.weatherService.getWeather(city);
+  async getWeather(@Query('city') params: getWeahterDto) {
+    return this.weatherService.getWeather(params.city);
   }
 }

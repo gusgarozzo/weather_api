@@ -13,7 +13,6 @@ export class RedisService {
     this.redisClient = new Redis ({
       host: this.configService.get<string>('REDIS_HOST') as string,
       port: this.configService.get<number>('REDIS_PORT') as number,
-      password: this.configService.get<string>('REDIS_PASSWORD') as string
     })
   }
 
