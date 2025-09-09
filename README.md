@@ -28,10 +28,10 @@ API REST para obtener información meteorológica en tiempo real, construida con
 
 ## ⚡ Instalación
 
-git clone https://github.com/gusgarozzo/weather_api.git
-cd weather_api
-npm install
-npm run start:dev
+- git clone https://github.com/gusgarozzo/weather_api.git
+- cd weather_api
+- npm install
+- npm run start:dev
 
 
 ## 📖 Documentación (Swagger)
