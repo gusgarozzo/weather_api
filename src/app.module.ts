@@ -4,6 +4,7 @@ import { RedisService } from './redis/redis.service';
 import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
 import { WeatherModule } from './weather/weather.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { WeatherModule } from './weather/weather.module';
       isGlobal: true,
     }),
     WeatherModule,
+    AiModule,
   ],
   controllers: [],
   providers: [AppService, RedisService],
