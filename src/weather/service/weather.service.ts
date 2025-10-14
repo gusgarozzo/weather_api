@@ -21,23 +21,17 @@ export class WeatherService {
     private readonly configService: ConfigService,
   ) {
     this.apiKey = this.configService.get<string>('VC_API_KEY') as string;
-    this.unitGroup = this.configService.get<string>(
-      'VC_UNIT_GROUP',
-      'us',
-    ) as string;
+    this.unitGroup = this.configService.get<string>('VC_UNIT_GROUP', 'us');
     this.contentType = this.configService.get<string>(
       'VC_CONTENT_TYPE',
       'json',
-    ) as string;
+    );
     this.defaultCity = this.configService.get<string>(
       'VC_DEFAULT_CITY',
       'Tandil',
-    ) as string;
-    this.cacheTTL = this.configService.get<number>(
-      'CACHE_TTL_SECONDS',
-      600,
-    ) as number;
-    this.lang = this.configService.get<string>('VS_LANG', 'us') as string;
+    );
+    this.cacheTTL = this.configService.get<number>('CACHE_TTL_SECONDS', 600);
+    this.lang = this.configService.get<string>('VS_LANG', 'us');
   }
 
   async getWeather(city?: string): Promise<IWeatherResponse> {
@@ -59,25 +53,23 @@ export class WeatherService {
     }
   }
 
-  private async cacheCheck(cacheKey: string): Promise<any> {
-    try {
-      const cached = await this.redisService.get(cacheKey);
+  private async cacheCheck(
+    cacheKey: string,
+  ): Promise<IWeatherResponse | undefined> {
+    const cached: string | null = await this.redisService.get(cacheKey);
 
-      if (cached) return cached;
-    } catch (error) {
-      throw error;
+    if (!cached) {
+      return undefined;
     }
+
+    return JSON.parse(cached) as IWeatherResponse;
   }
 
   private async saveInCache(
     cacheKey: string,
     response: IWeatherResponse,
   ): Promise<void> {
-    try {
-      await this.redisService.set(cacheKey, response, this.cacheTTL);
-    } catch (error) {
-      throw error;
-    }
+    await this.redisService.set(cacheKey, response, this.cacheTTL);
   }
 
   private buildWeatherUrl(location: string): string {

@@ -1,8 +1,8 @@
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { AiService } from 'src/ai/service/ai.service';
 import { getWeahterDto } from '../dto/getWeather.dto';
 import { WeatherService } from '../service/weather.service';
-import { AiService } from 'src/ai/service/ai.service';
 
 @Controller('weather')
 export class WeatherController {

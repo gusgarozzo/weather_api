@@ -24,7 +24,6 @@ export interface IWeatherResponse {
   currentConditions: ICurrentConditions;
 }
 
-
 interface IBaseConditions {
   datetime: string;
   datetimeEpoch: number;
@@ -59,7 +58,6 @@ interface IWithSunData {
   sunsetEpoch: number;
   moonphase: number;
 }
-
 
 export interface ICurrentConditions extends IBaseConditions, IWithSunData {}
 
