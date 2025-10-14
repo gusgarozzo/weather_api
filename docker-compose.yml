@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------
+  # Servicio: app (API de NestJS)
+  # ----------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weather-api
+    ports:
+      - '${PORT}:${PORT}'
+    env_file:
+      - .env
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'sh',
+          '-c',
+          'wget --quiet --tries=1 --spider http://localhost:${PORT}/healthcheck || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+    environment:
+      REDIS_HOST: redis
+    restart: always
+
+  # ----------------------------------------------------
+  # Servicio: redis (Servidor de Caché)
+  # ----------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: weather-redis
+
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    restart: always
+
+networks:
+  default:
+    name: weather-network

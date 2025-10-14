@@ -5,6 +5,7 @@ import * as Joi from 'joi';
 import { ConfigModule } from '@nestjs/config';
 import { WeatherModule } from './weather/weather.module';
 import { AiModule } from './ai/ai.module';
+import { HealthcheckModule } from './healthcheck/healthcheck.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AiModule } from './ai/ai.module';
     }),
     WeatherModule,
     AiModule,
+    HealthcheckModule,
   ],
   controllers: [],
   providers: [AppService, RedisService],
