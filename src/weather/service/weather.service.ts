@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { RedisService } from 'src/redis/redis.service';
+import { RedisService } from '../../redis/redis.service';
 import { IWeatherResponse } from '../interfaces/weather-response.interface';
 import { UrlEnum } from '../enum/weather-api-url.enum';
 
@@ -30,7 +30,8 @@ export class WeatherService {
       'VC_DEFAULT_CITY',
       'Tandil',
     );
-    this.cacheTTL = this.configService.get<number>('CACHE_TTL_SECONDS', 600);
+    this.cacheTTL =
+      this.configService.get<number>('CACHE_TTL_SECONDS', 600) || 3600;
     this.lang = this.configService.get<string>('VS_LANG', 'us');
   }
 
@@ -39,17 +40,46 @@ export class WeatherService {
       const location = encodeURIComponent(city || this.defaultCity);
       const cacheKey = `weather:${location.toLowerCase()}`;
 
-      await this.cacheCheck(cacheKey);
+      const cached = await this.redisService.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached) as IWeatherResponse;
+      }
 
       const url = this.buildWeatherUrl(location);
-
       const response = await axios.get<IWeatherResponse>(url);
-      await this.saveInCache(cacheKey, response.data);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        `Weather API request failed: ${(error as Error).message}`,
+
+      await this.redisService.set(
+        cacheKey,
+        JSON.stringify(response.data),
+        this.cacheTTL,
       );
+
+      return response.data;
+    } catch (error: unknown) {
+      let errorMessage = 'Request failed with status code 500';
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error
+      ) {
+        errorMessage = (error as { message: string }).message;
+      } else if (
+        typeof error === 'object' &&
+        error !== null &&
+        'response' in error
+      ) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      }
+
+      throw new Error(`Weather API request failed: ${errorMessage}`);
     }
   }
 
@@ -66,10 +96,10 @@ export class WeatherService {
   }
 
   private async saveInCache(
-    cacheKey: string,
-    response: IWeatherResponse,
+    key: string,
+    data: IWeatherResponse,
   ): Promise<void> {
-    await this.redisService.set(cacheKey, response, this.cacheTTL);
+    await this.redisService.set(key, JSON.stringify(data), 3600);
   }
 
   private buildWeatherUrl(location: string): string {

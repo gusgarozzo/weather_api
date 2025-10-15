@@ -1,8 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IWeatherResponse } from 'src/weather/interfaces/weather-response.interface';
-import { WeatherService } from 'src/weather/service/weather.service';
+import { IWeatherResponse } from '../../weather/interfaces/weather-response.interface';
+import { WeatherService } from '../../weather/service/weather.service';
 import { AiModel } from '../enum/ai-model.enum';
 
 @Injectable()
