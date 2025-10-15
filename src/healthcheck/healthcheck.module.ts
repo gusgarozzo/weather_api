@@ -3,6 +3,6 @@ import { HealthcheckController } from './controller/healthcheck.controller';
 
 @Module({
   providers: [],
-  controllers: [HealthcheckController]
+  controllers: [HealthcheckController],
 })
 export class HealthcheckModule {}

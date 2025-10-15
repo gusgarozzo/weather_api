@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { WeatherService } from 'src/weather/service/weather.service';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IWeatherResponse } from 'src/weather/interfaces/weather-response.interface';
+import { IWeatherResponse } from '../../weather/interfaces/weather-response.interface';
+import { WeatherService } from '../../weather/service/weather.service';
 import { AiModel } from '../enum/ai-model.enum';
 
 @Injectable()
@@ -30,19 +30,21 @@ export class AiService {
       const prompt: string = this.generatePrompt(weatherData);
 
       return this.generateAIResponse(prompt);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Error at enrichWeather (AiService): ${JSON.stringify(error)}`,
       );
 
-      if (error.message.includes('429')) {
-        return 'El servicio de IA está sobrecargado. Inténtalo de nuevo más tarde.';
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if ((error as any).response) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        this.logger.error((error as any).response.data);
       }
-      if (error.message.includes('503')) {
-        return 'El servicio de IA no está disponible en este momento. Por favor, inténtalo más tarde.';
-      }
-      if (error.message.includes('404')) {
-        return 'No se pudo contactar al modelo de IA. Verifica la configuración de tu API.';
+
+      if (error instanceof Error) {
+        this.logger.error(error.message);
+      } else {
+        this.logger.error(`Error desconocido: ${JSON.stringify(error)}`);
       }
 
       return 'Ocurrió un error inesperado al generar el pronóstico. Por favor, inténtalo de nuevo.';
@@ -50,24 +52,18 @@ export class AiService {
   }
 
   private formatResponse(aiSummary: string) {
-    try {
-      let formattedSummary = aiSummary;
-      const recomendations: string[] = [];
+    let formattedSummary = aiSummary;
 
-      const paragraphs = aiSummary
-        .split('\n\n')
-        .map((p) => p.trim())
-        .filter((p) => p.length > 0);
-      formattedSummary = paragraphs.join('<br><br>');
-      return formattedSummary;
-    } catch (error) {
-      throw error;
-    }
+    const paragraphs = aiSummary
+      .split('\n\n')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    formattedSummary = paragraphs.join('<br><br>');
+    return formattedSummary;
   }
 
   private generatePrompt(weatherData: IWeatherResponse): string {
-    try {
-      return `
+    return `
         Transforma estos datos del clima (formato JSON) en un pronóstico claro y conciso en español. Dirigido a una persona común, debe ser fácil de entender.
         Incluye recomendaciones prácticas basadas en las condiciones:
         * Si hay **lluvia**, sugiere llevar **paraguas**.
@@ -78,24 +74,17 @@ export class AiService {
 
         Datos del clima:
         ${JSON.stringify(weatherData)}`;
-    } catch (error) {
-      throw error;
-    }
   }
 
   private async generateAIResponse(prompt: string): Promise<string> {
-    try {
-      const model = this.genAI.getGenerativeModel({
-        model: AiModel.GEMINI_FLASH,
-      });
+    const model = this.genAI.getGenerativeModel({
+      model: AiModel.GEMINI_FLASH,
+    });
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const aiSummary = response.text();
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const aiSummary = response.text();
 
-      return this.formatResponse(aiSummary);
-    } catch (error) {
-      throw error;
-    }
+    return this.formatResponse(aiSummary);
   }
 }

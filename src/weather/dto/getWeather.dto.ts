@@ -8,7 +8,7 @@ export class getWeahterDto {
     type: 'string',
     example: 'Buenos Aires',
     description: 'City to check weather',
-    required: false
+    required: false,
   })
   city?: string;
 }

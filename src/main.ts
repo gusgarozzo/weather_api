@@ -1,5 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
+import {
+  DocumentBuilder,
+  SwaggerCustomOptions,
+  SwaggerModule,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -11,7 +15,7 @@ async function bootstrap() {
     .setTitle('Weather API Documentation')
     .setDescription('API description')
     .build();
-    
+
   const document = SwaggerModule.createDocument(app, config);
 
   const swaggerOptions: SwaggerCustomOptions = {
@@ -24,4 +28,4 @@ async function bootstrap() {
   SwaggerModule.setup('api/swagger', app, document, swaggerOptions);
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

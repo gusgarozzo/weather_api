@@ -9,21 +9,24 @@ export interface IWeatherResponse {
   description: string;
   days: IDay[];
   alerts: [];
-  stations: {
-    SAZM: {
-      distance: number;
-      latitude: number;
-      longitude: number;
-      useCount: number;
-      id: string;
-      name: string;
-      quality: number;
-      contribution: number;
-    };
-  };
+  stations: IStations;
   currentConditions: ICurrentConditions;
 }
 
+export interface IStations {
+  SAZM: ISAZM;
+}
+
+export interface ISAZM {
+  distance: number;
+  latitude: number;
+  longitude: number;
+  useCount: number;
+  id: string;
+  name: string;
+  quality: number;
+  contribution: number;
+}
 
 interface IBaseConditions {
   datetime: string;
@@ -59,7 +62,6 @@ interface IWithSunData {
   sunsetEpoch: number;
   moonphase: number;
 }
-
 
 export interface ICurrentConditions extends IBaseConditions, IWithSunData {}
 
