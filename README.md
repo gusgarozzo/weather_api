@@ -1,30 +1,24 @@
 # Weather API
 
-API REST para obtener información meteorológica en tiempo real, construida con **NestJS** y **TypeScript**. Permite consultar el clima por ciudad y obtener datos detallados de temperatura, humedad, viento y condiciones atmosféricas.
+### Weather API — AI Engineering Project
 
-## 🚀 Tecnologías
+Proyecto personal en desarrollo orientado a explorar la integración de **IA generativa en aplicaciones backend reales**, utilizando **Node.js, NestJS y TypeScript**.
 
-- Node.js
-- NestJS
-- TypeScript
-- Axios (para consumo de APIs externas)
-- Redis (para cache y mejora de rendimiento)
-- ESLint (para mantener calidad y consistencia de código)
+Actualmente integra información meteorológica con un LLM para generar respuestas estructuradas sobre las condiciones actuales, incluyendo recomendaciones y evaluación del nivel de riesgo.
 
-## 📝 Features
+El proyecto está evolucionando hacia una arquitectura más completa de **AI Engineering**, incorporando progresivamente:
 
-### ✅ Actualmente implementadas
-- Consulta de clima actual por ciudad.
-- Integración con APIs externas de datos meteorológicos.
-- Cache de resultados usando Redis para optimizar tiempos de respuesta.
-- Respuesta con datos relevantes: temperatura, humedad, velocidad del viento, descripción del clima.
-- Manejo de errores y validaciones básicas de entrada.
+* Structured outputs y validación de respuestas generadas por el LLM.
+* Evaluación automática de respuestas mediante casos y criterios definidos.
+* AI evaluation y métricas de calidad.
+* Abstracción de proveedores de modelos.
+* Tool calling.
+* RAG y recuperación de contexto.
+* Prácticas de diseño orientadas a sistemas de IA confiables y mantenibles.
 
-### 🔜 Próximas / En desarrollo
-- Pronóstico del clima por 7 días.
-- Autenticación para usuarios premium (con limitaciones de uso gratuitas).
-- Endpoint de búsqueda por coordenadas geográficas.
-- Documentación automática de la API con Swagger.
+El objetivo no es simplemente consumir una API de IA, sino explorar cómo **diseñar, evaluar y evolucionar sistemas backend que incorporan modelos de lenguaje como parte de su arquitectura**.
+
+**Status:** In active development.
 
 ## ⚡ Instalación
 
