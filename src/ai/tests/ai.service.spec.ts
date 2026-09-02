@@ -6,11 +6,14 @@ import { IWeatherResponse } from '../../weather/interfaces/weather-response.inte
 import { WeatherService } from '../../weather/service/weather.service';
 import { AiService } from '../service/ai.service';
 
-const mockGeminiResponse = {
-  response: {
-    text: () => 'El pronóstico generado por la IA.',
-  },
-};
+const mockGeminiText = jest.fn(() =>
+  JSON.stringify({
+    summary: 'El pronóstico generado por la IA.',
+    recommendations: ['Lleva paraguas.'],
+    riskLevel: 'low',
+  }),
+);
+const mockGeminiResponse = { response: { text: mockGeminiText } };
 const mockBaseConditions = {
   datetime: '15:00:00',
   datetimeEpoch: 1678896000,
@@ -105,6 +108,11 @@ const mockConfigService = {
 
 jest.mock('@google/generative-ai', () => {
   return {
+    SchemaType: {
+      OBJECT: 'OBJECT',
+      STRING: 'STRING',
+      ARRAY: 'ARRAY',
+    },
     GoogleGenerativeAI: jest.fn().mockImplementation(() => {
       return {
         getGenerativeModel: jest.fn().mockReturnValue({
@@ -140,6 +148,27 @@ describe('AiService', () => {
     expect(service).toBeDefined();
   });
 
+  it('debería devolver un pronóstico estructurado', async () => {
+    const result = await service.enrichWeather('Tandil');
+
+    expect(result).toEqual({
+      summary: 'El pronóstico generado por la IA.',
+      recommendations: ['Lleva paraguas.'],
+      riskLevel: 'low',
+    });
+  });
+
+  it('debería devolver un error estructurado si Gemini rompe el contrato', async () => {
+    mockGeminiText.mockReturnValueOnce(
+      JSON.stringify({ summary: 'Sin recomendaciones' }),
+    );
+
+    const result = await service.enrichWeather('Tandil');
+
+    expect(result.riskLevel).toBe('medium');
+    expect(result.recommendations).toEqual([]);
+  });
+
   it('debería devolver una cadena de error si la obtención de clima falla', async () => {
     mockWeatherService.getWeather.mockRejectedValue(
       new Error('Fallo simulado'),
@@ -147,8 +176,11 @@ describe('AiService', () => {
 
     const result = await service.enrichWeather('CiudadErronea');
 
-    expect(result).toBe(
-      'Ocurrió un error inesperado al generar el pronóstico. Por favor, inténtalo de nuevo.',
-    );
+    expect(result).toEqual({
+      summary:
+        'Ocurrió un error inesperado al generar el pronóstico. Por favor, inténtalo de nuevo.',
+      recommendations: [],
+      riskLevel: 'medium',
+    });
   });
 });
